@@ -1,9 +1,29 @@
+import argparse
 import asyncio
 import httpx
 
-async def test_ai_agent():
+
+def select_provider(cli_provider: str | None) -> str | None:
+    if cli_provider:
+        return None if cli_provider == "default" else cli_provider
+
+    print("사용할 LLM 프로바이더를 선택하세요:")
+    print("  1) ollama (로컬 모델)")
+    print("  2) exaone (EXAONE API)")
+    print("  Enter) .env 기본값(LLM_PROVIDER) 사용")
+    choice = input("선택 [1/2/Enter]: ").strip().lower()
+
+    if choice in ("1", "ollama"):
+        return "ollama"
+    if choice in ("2", "exaone"):
+        return "exaone"
+    return None
+
+
+async def test_ai_agent(provider: str | None):
+    label = provider if provider else ".env default"
     print("==================================================")
-    print("Testing Python AI Agent (Ollama gemma4:e2b)")
+    print(f"Testing Python AI Agent (provider: {label})")
     print("==================================================")
 
     url = "http://127.0.0.1:8000/api/ai/review"
@@ -18,9 +38,11 @@ async def test_ai_agent():
             "전세자금대출 미승인 시에도 계약금은 일체 반환하지 아니한다."
         ]
     }
+    if provider:
+        payload["provider"] = provider
 
     print("\n[Request] Sending toxic clauses to AI Agent...")
-    async with httpx.AsyncClient(timeout=180.0) as client:
+    async with httpx.AsyncClient(timeout=300.0) as client:
         res = await client.post(url, json=payload)
         print(f"[Response Status] {res.status_code}")
         data = res.json()
@@ -42,6 +64,15 @@ async def test_ai_agent():
         for clause in data.get("recommended_additional_clauses", []):
             print(f"  + {clause}")
 
-if __name__ == "__main__":
-    asyncio.run(test_ai_agent())
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Test Real Estate AI Agent")
+    parser.add_argument(
+        "--provider",
+        choices=["ollama", "exaone", "default"],
+        default=None,
+        help="LLM provider to test (omit for interactive prompt)"
+    )
+    args = parser.parse_args()
+    selected_provider = select_provider(args.provider)
+    asyncio.run(test_ai_agent(selected_provider))

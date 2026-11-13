@@ -13,6 +13,7 @@ dependencies = [
     "langchain>=1.5.0",
     "langchain-core>=1.8.0",
     "langchain-ollama>=1.1.0",
+    "langchain-openai>=1.7.4",
     "langgraph>=1.2.20",
     "pydantic>=2.14.3",
     "python-dotenv>=1.2.4",

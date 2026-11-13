@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 class ToxicClauseDetail(BaseModel):
@@ -18,6 +18,10 @@ class ReviewContractRequest(BaseModel):
     deposit_amount: float = Field(default=0, description="보증금 (원)")
     monthly_rent: float = Field(default=0, description="월세 (원)")
     special_clauses: List[str] = Field(default_factory=list, description="계약서에 기재된 특약사항 목록")
+    provider: Optional[Literal["ollama", "exaone"]] = Field(
+        default=None,
+        description="사용할 LLM 프로바이더 ('ollama' | 'exaone'). 미지정 시 .env의 LLM_PROVIDER 기본값 사용"
+    )
 
 class ReviewContractResponse(BaseModel):
     contract_type: str
